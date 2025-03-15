@@ -1,671 +1,358 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect, useRef, useMemo } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { Search, ArrowRight, Calendar, Clock } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Clock, Search, X } from "lucide-react"
-import { SectionWrapper } from "@/components/section-wrapper"
+import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
-interface BlogPost {
-  id: string
-  title: string
-  excerpt: string
-  date: string
-  image: string
-  slug: string
-  readTime?: string
-  category?: string
-  author?: string
-  authorImage?: string
-}
-
-const featuredPost: BlogPost = {
-  id: "1",
-  title:
-    "Best practices pro správu pohledávek: Jak efektivně řídit a monitorovat pohledávky v rámci českého právního prostředí",
-  excerpt:
-    "Přehledný článek o tématu Best practices pro správu pohledávek: Jak efektivně řídit a monitorovat pohledávky v rámci českého právního prostředí. Zjistěte klíčové informace pro správu a vymáhání pohledávek.",
-  date: "11. března 2025",
-  image: "/placeholder.svg?height=600&width=800",
-  slug: "best-practices-sprava-pohledavek",
-  readTime: "6 minut čtení",
-  category: "Správa pohledávek",
-  author: "Jan Novák",
-  authorImage: "/placeholder.svg?height=120&width=120",
-}
-
-const posts: BlogPost[] = [
+// Sample blog posts data - v reálné aplikaci by toto přicházelo z API nebo MDX souborů
+const blogPosts = [
   {
-    id: "2",
-    title: "Dopad neplacených pohledávek na cash flow: Jak neuhrazené faktury ovlivňují finanční zdraví firmy",
-    excerpt: "Analýza dopadu neplacených pohledávek na finanční zdraví firem a jejich cash flow.",
+    slug: "best-practices-sprava-pohledavek",
+    title: "Best practices pro správu pohledávek",
+    subtitle: "Jak efektivně řídit a monitorovat pohledávky v rámci českého právního prostředí",
     date: "11. března 2025",
-    image: "/placeholder.svg?height=400&width=600",
-    slug: "dopad-neplacenych-pohledavek",
-    readTime: "5 minut čtení",
-    category: "Správa pohledávek",
     author: "Jan Novák",
+    authorPosition: "Specialista na pohledávky",
     authorImage: "/placeholder.svg?height=120&width=120",
+    readTime: "6 minut čtení",
+    category: "Správa pohledávek",
+    tags: ["správa", "monitoring", "best practices"],
+    image: "/placeholder.svg?height=800&width=1600",
+    excerpt:
+      "Přehledný článek o tématu Best practices pro správu pohledávek: Jak efektivně řídit a monitorovat pohledávky v rámci českého právního prostředí.",
   },
   {
-    id: "3",
-    title:
-      "Efektivní strategie vymáhání pohledávek: Přehled soudních i mimosoudních metod vymáhání, včetně role exekucí",
-    excerpt: "Komplexní přehled strategií pro vymáhání pohledávek včetně soudních a mimosoudních metod.",
-    date: "11. března 2025",
-    image: "/placeholder.svg?height=400&width=600",
+    slug: "dopad-neplacenych-pohledavek",
+    title: "Dopad neplacených pohledávek na cash flow",
+    subtitle: "Jak neuhrazené faktury ovlivňují finanční zdraví firmy",
+    date: "5. března 2025",
+    author: "Petra Svobodová",
+    authorPosition: "Finanční analytik",
+    authorImage: "/placeholder.svg?height=120&width=120",
+    readTime: "5 minut čtení",
+    category: "Finanční analýza",
+    tags: ["cash flow", "finance", "platební morálka"],
+    image: "/placeholder.svg?height=800&width=1600",
+    excerpt:
+      "Analýza dopadu neplacených pohledávek na finanční zdraví firem a jejich cash flow. Zjistěte, jak se bránit proti negativním dopadům neplačů.",
+  },
+  {
     slug: "efektivni-strategie-vymahani",
+    title: "Efektivní strategie vymáhání pohledávek",
+    subtitle: "Přehled soudních i mimosoudních metod vymáhání, včetně role exekucí",
+    date: "28. února 2025",
+    author: "Martin Dvořák",
+    authorPosition: "Právní expert",
+    authorImage: "/placeholder.svg?height=120&width=120",
     readTime: "7 minut čtení",
     category: "Vymáhání pohledávek",
-    author: "Jan Novák",
-    authorImage: "/placeholder.svg?height=120&width=120",
+    tags: ["vymáhání", "exekuce", "soudní řízení"],
+    image: "/placeholder.svg?height=800&width=1600",
+    excerpt:
+      "Komplexní přehled strategií pro vymáhání pohledávek včetně soudních a mimosoudních metod. Poradíme vám, jak postupovat krok za krokem.",
   },
   {
-    id: "4",
-    title: "Etické a spotřebitelské aspekty: Jak zajistit férové a transparentní postupy při vymáhání pohledávek",
-    excerpt:
-      "Etické a spotřebitelské aspekty vymáhání pohledávek: Průvodce férovými a transparentními postupy pro spravedlivé řešení.",
-    date: "11. března 2025",
-    image: "/placeholder.svg?height=400&width=600",
     slug: "eticke-spotrebitelske-aspekty",
+    title: "Etické a spotřebitelské aspekty vymáhání pohledávek",
+    subtitle: "Jak zajistit férové a transparentní postupy při vymáhání pohledávek",
+    date: "20. února 2025",
+    author: "Lucie Nováková",
+    authorPosition: "Specialista na spotřebitelské právo",
+    authorImage: "/placeholder.svg?height=120&width=120",
     readTime: "5 minut čtení",
     category: "Etika vymáhání",
-    author: "Jan Novák",
+    tags: ["etika", "spotřebitelé", "transparentnost"],
+    image: "/placeholder.svg?height=800&width=1600",
+    excerpt:
+      "Etické a spotřebitelské aspekty vymáhání pohledávek: Průvodce férovými a transparentními postupy pro spravedlivé řešení dluhů.",
+  },
+  {
+    slug: "insolvencni-rizeni-prubeh",
+    title: "Insolvenční řízení krok za krokem",
+    subtitle: "Průvodce procesem insolvenčního řízení z pohledu věřitele",
+    date: "15. února 2025",
+    author: "Pavel Černý",
+    authorPosition: "Insolvenční správce",
     authorImage: "/placeholder.svg?height=120&width=120",
+    readTime: "8 minut čtení",
+    category: "Insolvence",
+    tags: ["insolvence", "bankrot", "věřitel"],
+    image: "/placeholder.svg?height=800&width=1600",
+    excerpt:
+      "Podrobný průvodce insolvenčním řízením pro věřitele. Jak přihlásit pohledávku, jaké jsou lhůty a co můžete očekávat od celého procesu.",
+  },
+  {
+    slug: "prevence-vzniku-pohledavek",
+    title: "Prevence vzniku problematických pohledávek",
+    subtitle: "Jak nastavit obchodní podmínky a smlouvy k minimalizaci rizik",
+    date: "10. února 2025",
+    author: "Jan Novák",
+    authorPosition: "Specialista na pohledávky",
+    authorImage: "/placeholder.svg?height=120&width=120",
+    readTime: "6 minut čtení",
+    category: "Prevence",
+    tags: ["prevence", "smlouvy", "rizika"],
+    image: "/placeholder.svg?height=800&width=1600",
+    excerpt:
+      "Zjistěte, jak pomocí správně nastavených obchodních podmínek a smluv předejít vzniku problematických pohledávek a ochránit svůj business.",
   },
 ]
 
-const categoryDefinitions = [
-  { name: "Všechny články", slug: "" },
-  { name: "Správa pohledávek", slug: "sprava-pohledavek" },
-  { name: "Vymáhání pohledávek", slug: "vymahani-pohledavek" },
-  { name: "Odkup pohledávek", slug: "odkup-pohledavek" },
-  { name: "Etika vymáhání", slug: "etika-vymahani" },
-  { name: "Právní aspekty", slug: "pravni-aspekty" },
+// Kategorie pro filtry na hlavní stránce
+const categories = [
+  "Správa pohledávek",
+  "Finanční analýza",
+  "Vymáhání pohledávek",
+  "Etika vymáhání",
+  "Insolvence",
+  "Prevence"
 ]
 
-function FeaturedArticle({ post }: { post: BlogPost }) {
-  return (
-    <Link href={`/blog/${post.slug}`} className="group">
-      <article className="overflow-hidden rounded-xl bg-white shadow-md transition-shadow hover:shadow-lg">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="relative aspect-[16/9] md:aspect-auto">
-            <Image
-              src={post.image || "/placeholder.svg"}
-              alt={post.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-            />
-          </div>
-          <div className="flex flex-col justify-center p-6 lg:py-12 xl:py-24">
-            <div className="mb-2 flex items-center gap-2">
-              <div className="relative h-8 w-8 overflow-hidden rounded-full">
-                <Image
-                  src={post.authorImage || "/placeholder.svg"}
-                  alt={post.author || "Autor"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <span className="text-sm text-zinc-600">{post.author}</span>
-              <span className="text-sm text-zinc-400">•</span>
-              <span className="text-sm text-zinc-500">{post.date}</span>
-            </div>
-
-            <div className="mb-3 w-fit rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
-              {post.category}
-            </div>
-
-            <h2 className="mb-3 text-2xl font-bold text-zinc-900 group-hover:text-orange-500">{post.title}</h2>
-            <p className="mb-4 text-zinc-600">{post.excerpt}</p>
-
-            <div className="mt-auto flex items-center gap-1 text-sm text-zinc-500">
-              <Clock className="h-4 w-4" />
-              {post.readTime}
-            </div>
-          </div>
-        </div>
-      </article>
-    </Link>
-  )
-}
-
-function ArticleCard({ post }: { post: BlogPost }) {
-  return (
-    <Link href={`/blog/${post.slug}`} className="group">
-      <article className="h-full overflow-hidden rounded-xl bg-white shadow-md transition-shadow hover:shadow-lg">
-        <div className="relative aspect-[16/9]">
-          <Image
-            src={post.image || "/placeholder.svg"}
-            alt={post.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 33vw"
-          />
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-            <div className="rounded-full bg-orange-500 px-3 py-1 text-xs font-medium text-white inline">
-              {post.category}
-            </div>
-          </div>
-        </div>
-        <div className="p-6">
-          <div className="mb-2 flex items-center gap-2">
-            <div className="relative h-6 w-6 overflow-hidden rounded-full">
-              <Image
-                src={post.authorImage || "/placeholder.svg"}
-                alt={post.author || "Autor"}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <span className="text-xs text-zinc-600">{post.author}</span>
-            <span className="text-xs text-zinc-400">•</span>
-            <span className="text-xs text-zinc-500">{post.date}</span>
-          </div>
-
-          <h3 className="mb-2 text-xl font-bold text-zinc-900 group-hover:text-orange-500">{post.title}</h3>
-          <p className="mb-4 text-sm text-zinc-600">{post.excerpt}</p>
-
-          <div className="mt-auto flex items-center gap-1 text-sm text-zinc-500">
-            <Clock className="h-4 w-4" />
-            {post.readTime}
-          </div>
-        </div>
-      </article>
-    </Link>
-  )
-}
-
 export default function BlogPage() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filteredPosts, setFilteredPosts] = useState(blogPosts)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [suggestions, setSuggestions] = useState<BlogPost[]>([])
-  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
-  const [isSearching, setIsSearching] = useState(false)
-  const searchInputRef = useRef<HTMLInputElement>(null)
-  const suggestionsRef = useRef<HTMLDivElement>(null)
-  const [selectedCategory, setSelectedCategory] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-  const allPosts = useRef([featuredPost, ...posts]).current
-
-  // Calculate category counts based on actual data
-  const categories = useMemo(() => {
-    // Create a map to count posts by category slug
-    const categoryCounts = new Map<string, number>()
-
-    // Count posts for each category, but avoid double-counting the featured post
-    // First, count the regular posts
-    posts.forEach((post) => {
-      if (post.category) {
-        const categorySlug = post.category
-          .toLowerCase()
-          .replace(/\s+/g, "-")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-        const currentCount = categoryCounts.get(categorySlug) || 0
-        categoryCounts.set(categorySlug, currentCount + 1)
-      }
-    })
-
-    // Then add the featured post only if it's not already counted
-    if (featuredPost.category) {
-      const featuredCategorySlug = featuredPost.category
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-      // Check if this post's ID is not already in the regular posts
-      const isUnique = !posts.some((post) => post.id === featuredPost.id)
-      if (isUnique) {
-        const currentCount = categoryCounts.get(featuredCategorySlug) || 0
-        categoryCounts.set(featuredCategorySlug, currentCount + 1)
-      }
-    }
-
-    // Create the categories array with real counts
-    return categoryDefinitions.map((category) => ({
-      ...category,
-      count:
-        category.slug === ""
-          ? posts.length + (posts.some((p) => p.id === featuredPost.id) ? 0 : 1)
-          : categoryCounts.get(category.slug) || 0,
-    }))
-  }, [posts, featuredPost])
-
-  // Update suggestions when search term changes
+  // Simulace načítání
   useEffect(() => {
-    if (searchTerm.trim().length > 0) {
-      const searchTermLower = searchTerm.toLowerCase().trim()
-      const matchedItems = allPosts.filter(
-        (post) =>
-          post.title.toLowerCase().includes(searchTermLower) ||
-          post.excerpt.toLowerCase().includes(searchTermLower) ||
-          post.category?.toLowerCase().includes(searchTermLower) ||
-          post.author?.toLowerCase().includes(searchTermLower),
-      )
-
-      setSuggestions(matchedItems)
-      setShowSuggestions(matchedItems.length > 0)
-      setSelectedSuggestionIndex(-1)
-    } else if (showSuggestions) {
-      // If the search field is empty but suggestions should be shown (on focus)
-      setSuggestions(allPosts)
-    }
-  }, [searchTerm, allPosts, showSuggestions])
-
-  // Handle click outside to close suggestions
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target as Node) &&
-        searchInputRef.current &&
-        !searchInputRef.current.contains(event.target as Node)
-      ) {
-        setShowSuggestions(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  // Handle keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showSuggestions) return
-
-    // Arrow down
-    if (e.key === "ArrowDown") {
-      e.preventDefault()
-      setSelectedSuggestionIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev))
-    }
-    // Arrow up
-    else if (e.key === "ArrowUp") {
-      e.preventDefault()
-      setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : 0))
-    }
-    // Enter
-    else if (e.key === "Enter" && selectedSuggestionIndex >= 0) {
-      e.preventDefault()
-      navigateToPost(suggestions[selectedSuggestionIndex])
-    }
-    // Escape
-    else if (e.key === "Escape") {
-      setShowSuggestions(false)
-    }
-  }
-
-  // Navigate to a post
-  const navigateToPost = (post: BlogPost) => {
-    setShowSuggestions(false)
-    setSearchTerm("")
-    window.location.href = `/blog/${post.slug}`
-  }
-
-  // Handle search submission
-  const handleSearch = (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-
-    if (!searchTerm.trim()) {
-      setIsSearching(false)
-      return
-    }
-
-    setIsSearching(true)
-    setShowSuggestions(false)
-  }
-
-  // Clear search
-  const clearSearch = () => {
-    setSearchTerm("")
-    setShowSuggestions(false)
-    setSuggestions([])
-    setIsSearching(false)
-  }
-
-  // Handle focus on search input
-  const handleFocus = () => {
-    // Show all posts as suggestions when the field is focused
-    setSuggestions(allPosts)
-    setShowSuggestions(true)
-  }
-
-  // Highlight matching text in suggestions
-  const highlightMatch = (text: string, query: string) => {
-    if (!query.trim()) return text
-
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi")
-    return text.replace(regex, '<mark class="px-0.5">$1</mark>')
-  }
-
-  useEffect(() => {
-    // Set loaded state after a small delay to trigger animations
     const timer = setTimeout(() => {
       setIsLoaded(true)
-    }, 100)
-
+    }, 500)
     return () => clearTimeout(timer)
   }, [])
 
-  // Filter posts based on selected category
-  const filteredPosts = useMemo(() => {
-    if (!selectedCategory) {
-      return posts // Return regular posts for "All articles" view
+  // Filtrování článků podle vyhledávání a kategorie
+  useEffect(() => {
+    let result = blogPosts
+
+    // Filtrování podle vyhledávání
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter(
+        post =>
+          post.title.toLowerCase().includes(query) ||
+          post.excerpt.toLowerCase().includes(query) ||
+          post.subtitle.toLowerCase().includes(query) ||
+          post.tags.some(tag => tag.toLowerCase().includes(query))
+      )
     }
 
-    // For specific category, include both regular posts and featured post if it matches
-    const regularPostsInCategory = posts.filter((post) => {
-      const postCategorySlug = post.category
-        ?.toLowerCase()
-        .replace(/\s+/g, "-")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-      return postCategorySlug === selectedCategory
-    })
-
-    // Check if featured post belongs to this category
-    const featuredPostCategorySlug = featuredPost.category
-      ?.toLowerCase()
-      .replace(/\s+/g, "-")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-
-    if (featuredPostCategorySlug === selectedCategory) {
-      // Add featured post to the filtered list if it's not already included
-      if (!regularPostsInCategory.some((post) => post.id === featuredPost.id)) {
-        return [featuredPost, ...regularPostsInCategory]
-      }
+    // Filtrování podle kategorie
+    if (selectedCategory) {
+      result = result.filter(post => post.category === selectedCategory)
     }
 
-    return regularPostsInCategory
-  }, [selectedCategory, posts, featuredPost])
+    setFilteredPosts(result)
+  }, [searchQuery, selectedCategory])
 
-  // Only show featured post separately on the "Všechny články" view
-  const showFeaturedPost = selectedCategory === ""
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+  }
+
+  const handleClearSearch = () => {
+    setSearchQuery("")
+  }
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(selectedCategory === category ? null : category)
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 pt-28">
-      {/* Add a style for the highlight effect */}
-      <style jsx global>{`
-        .suggestion-item:hover mark {
-          background-color: rgba(249, 115, 22, 0.4);
-          color: white;
-        }
-        .suggestion-item.selected mark {
-          background-color: rgba(249, 115, 22, 0.4);
-          color: white;
-        }
-        mark {
-          padding: 0;
-          background-color: rgba(249, 115, 22, 0.3);
-          color: white;
-          border-radius: 2px;
-        }
-      `}</style>
+    <div className="min-h-screen bg-gradient-to-b from-zinc-950 to-black text-white pb-16 pt-28">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="mb-6 text-4xl font-bold md:text-5xl">
+            <span className="text-white">EX</span>
+            <span className="text-orange-500">POHLEDÁVKY</span>
+          </h1>
+          <h2 className="mb-4 text-xl font-medium md:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-orange-300">
+            Odborný portál o správě a vymáhání pohledávek
+          </h2>
+          <p className="mb-8 mx-auto max-w-2xl text-zinc-400">
+            Vítejte na našem blogu věnovaném správě, odkupu a vymáhání pohledávek. 
+            Najdete zde odborné články s praktickými radami pro firmy a podnikatele v českém právním prostředí.
+          </p>
 
-      {/* Hero Section with fade-in animation */}
-      <section
-        className={`bg-zinc-900 py-16 text-white transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}
-      >
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="mb-4 text-4xl font-bold md:text-5xl">
-              <span className="text-white">EX</span>
-              <span className="text-orange-500">POHLEDÁVKY</span>
-            </h1>
-            <h2 className="mb-6 text-xl font-medium md:text-2xl">Odborný portál o správě a vymáhání pohledávek</h2>
-            <p className="mb-8 text-gray-200">
-              Vítejte na našem blogu věnovaném správě, odkupu a vymáhání pohledávek. Najdete zde odborné články s
-              praktickými radami pro firmy a podnikatele v českém právním prostředí.
-            </p>
+          {/* Search Bar */}
+          <div className="mx-auto relative max-w-xl">
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500" />
+            <Input
+              type="text"
+              placeholder="Hledat články..."
+              className="pl-10 py-6 bg-gradient-to-r from-zinc-900 to-zinc-950 border-zinc-800 text-white rounded-full focus:border-orange-500 focus:ring-orange-500"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            {searchQuery && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                onClick={handleClearSearch}
+              >
+                ✕
+              </Button>
+            )}
+          </div>
 
-            {/* Search Bar with subtle animation */}
-            <div
-              className="mx-auto mb-8 max-w-xl transform transition-all duration-500 ease-in-out hover:scale-[1.02]"
-              style={{ position: "relative", zIndex: "10" }}
-            >
-              <div className="relative">
-                <form onSubmit={handleSearch} className="relative z-[100]">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white z-20" size={20} />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Hledat články..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onFocus={handleFocus}
-                    className="w-full rounded-full border-0 bg-white/10 px-5 pl-10 py-3 text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-300"
-                  />
-                  {searchTerm && (
-                    <button
-                      type="button"
-                      onClick={clearSearch}
-                      className="absolute right-16 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200"
-                    >
-                      <X size={18} />
-                    </button>
-                  )}
-                  <button
-                    type="submit"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-orange-500 p-2 text-white hover:bg-orange-600 transition-colors duration-300"
-                  >
-                    <Search className="h-5 w-5" />
-                  </button>
+          {/* Kategorie (horizontální výběr) */}
+          <div className="mt-8 flex flex-wrap justify-center gap-2">
+            {categories.map((category) => (
+              <Badge 
+                key={category}
+                className={`cursor-pointer px-4 py-2 text-sm transition-all duration-300 ${
+                  selectedCategory === category 
+                    ? "bg-orange-500 hover:bg-orange-600 text-white" 
+                    : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white"
+                }`}
+                onClick={() => handleCategorySelect(category)}
+              >
+                {category}
+              </Badge>
+            ))}
+          </div>
 
-                  {/* Search suggestions */}
-                  {showSuggestions && (
-                    <div
-                      ref={suggestionsRef}
-                      className="absolute z-[100] mt-2 w-full bg-zinc-800/95 backdrop-blur-sm rounded-xl shadow-lg max-h-80 overflow-auto border border-zinc-700 transition-all duration-300"
-                      style={{ transform: "translateY(4px)" }}
-                    >
-                      <div className="py-2 px-2">
-                        <ul className="space-y-1">
-                          {suggestions.map((post, index) => (
-                            <li
-                              key={post.id}
-                              className={`suggestion-item px-3 py-2 cursor-pointer flex items-start rounded-lg transition-all duration-200 ${
-                                selectedSuggestionIndex === index
-                                  ? "bg-orange-500/20 text-white"
-                                  : "hover:bg-zinc-700/50"
-                              }`}
-                              onClick={() => navigateToPost(post)}
-                              onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                            >
-                              <div className="flex-1 min-w-0 mr-2">
-                                {" "}
-                                {/* Added min-width and margin */}
-                                <div
-                                  className={`font-medium text-left truncate ${selectedSuggestionIndex === index ? "text-white" : "text-zinc-200"}`}
-                                  dangerouslySetInnerHTML={{
-                                    __html: highlightMatch(post.title, searchTerm),
-                                  }}
-                                />
-                                <div
-                                  className="text-sm text-zinc-400 truncate text-left mt-1"
-                                  dangerouslySetInnerHTML={{
-                                    __html: highlightMatch(
-                                      post.excerpt.substring(0, 75) + (post.excerpt.length > 75 ? "..." : ""),
-                                      searchTerm,
-                                    ),
-                                  }}
-                                />
-                              </div>
-                              <span className="text-xs bg-orange-500/20 text-orange-300 rounded-full px-2 py-0.5 ml-auto flex-shrink-0 whitespace-nowrap">
-                                {post.category}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                </form>
+          {/* Více o nás tlačítko */}
+          <Button 
+            variant="outline" 
+            className="mt-8 border-orange-500/40 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300"
+          >
+            Více o nás
+          </Button>
+        </div>
+
+        {/* Blog Posts Grid */}
+        {!isLoaded ? (
+          // Loading skeleton
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, index) => (
+              <div key={index} className="bg-gradient-to-b from-zinc-800 to-zinc-900 rounded-lg overflow-hidden shadow-lg">
+                <div className="h-48 w-full bg-zinc-800 animate-pulse" />
+                <div className="p-6">
+                  <div className="h-6 w-3/4 bg-zinc-700 rounded animate-pulse" />
+                  <div className="h-4 w-full bg-zinc-700 rounded animate-pulse mt-3" />
+                  <div className="h-4 w-full bg-zinc-700 rounded animate-pulse mt-2" />
+                  <div className="h-4 w-2/3 bg-zinc-700 rounded animate-pulse mt-2" />
+                </div>
               </div>
+            ))}
+          </div>
+        ) : filteredPosts.length === 0 ? (
+          // Žádné výsledky
+          <div className="mt-10 rounded-lg bg-gradient-to-b from-zinc-800 to-zinc-900 p-8 text-center shadow-lg">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-500/20 to-zinc-800">
+              <Search className="h-10 w-10 text-orange-500" />
             </div>
+            <h3 className="mb-2 text-xl font-semibold">Žádné články nebyly nalezeny</h3>
+            <p className="mb-6 text-zinc-400">
+              Zkuste upravit své vyhledávání pro zobrazení relevantních článků.
+            </p>
+            <Button onClick={handleClearSearch} className="bg-orange-500 hover:bg-orange-600">Vyčistit vyhledávání</Button>
+          </div>
+        ) : (
+          // Seznam článků
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {filteredPosts.map((post) => (
+              <Card 
+                key={post.slug} 
+                className="group overflow-hidden bg-gradient-to-b from-zinc-800 to-zinc-900 border-zinc-800 hover:border-orange-500/50 transition-all duration-300 shadow-lg hover:shadow-orange-500/5"
+              >
+                <div className="relative h-48 w-full overflow-hidden">
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
+                  <Badge className="absolute left-3 top-3 bg-orange-500 text-white hover:bg-orange-600">
+                    {post.category}
+                  </Badge>
+                </div>
 
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="bg-transparent text-white hover:bg-white/10 hover:text-white transition-all duration-300 hover:scale-105"
-            >
-              <Link href="/o-nas">Více o nás</Link>
+                <CardHeader className="pt-5 pb-3">
+                  <CardTitle className="line-clamp-2 transition-colors group-hover:text-orange-400">
+                    {post.title}
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent className="pb-3">
+                  <p className="line-clamp-2 text-zinc-400">{post.subtitle}</p>
+                </CardContent>
+
+                <CardFooter className="flex items-center justify-between border-t border-zinc-800 pt-4">
+                  <div className="flex items-center gap-2 text-sm text-zinc-500">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>{post.date}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span>{post.readTime}</span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-orange-500 hover:text-orange-400 hover:bg-transparent p-0" asChild>
+                    <Link href={`/blog/${post.slug}`}>
+                      Číst článek <ArrowRight className="h-4 w-4 ml-1" />
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Kategorie (spodní část) */}
+        {isLoaded && filteredPosts.length > 0 && (
+          <div className="mt-16 rounded-lg bg-gradient-to-r from-zinc-900 to-zinc-950 border border-zinc-800 p-8 shadow-lg">
+            <h3 className="mb-6 text-xl font-bold text-orange-400">Procházet podle kategorií</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {categories.map((category) => (
+                <Button 
+                  key={category}
+                  variant="outline" 
+                  className={`justify-start border-zinc-700 hover:border-orange-500 hover:bg-orange-500/10 transition-all duration-300 ${
+                    selectedCategory === category ? "border-orange-500 text-orange-400" : "text-zinc-400"
+                  }`}
+                  onClick={() => handleCategorySelect(category)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Newsletter */}
+        <div className="mt-16 rounded-lg bg-gradient-to-r from-orange-950 to-zinc-900 border border-orange-900/40 p-8 text-center shadow-lg">
+          <h3 className="mb-3 text-2xl font-bold text-white">Zůstaňte informováni</h3>
+          <p className="mb-6 text-zinc-300 max-w-xl mx-auto">
+            Přihlaste se k odběru našeho newsletteru a dostávejte nejnovější informace ze světa pohledávek.
+          </p>
+          <div className="flex max-w-md mx-auto flex-col sm:flex-row gap-3">
+            <Input
+              type="email"
+              placeholder="Váš e-mail"
+              className="bg-zinc-800/80 border-zinc-700 text-white focus:border-orange-500"
+            />
+            <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+              Odebírat
             </Button>
           </div>
         </div>
-      </section>
-
-      <div className="container">
-        {/* Search Results */}
-        {isSearching && (
-          <div className="my-8">
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-zinc-900">
-                  {suggestions.length > 0
-                    ? `Výsledky vyhledávání (${suggestions.length})`
-                    : "Žádné výsledky nenalezeny"}
-                </h2>
-                <Button variant="ghost" size="sm" onClick={clearSearch} className="text-zinc-500 hover:text-zinc-700">
-                  Zrušit vyhledávání
-                </Button>
-              </div>
-
-              {suggestions.length > 0 ? (
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                  {suggestions.map((post) => (
-                    <div key={post.id} className="transform transition-all duration-500 ease-in-out hover:scale-[1.03]">
-                      <ArticleCard post={post} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-zinc-600 mb-4">Zkuste upravit vyhledávací dotaz nebo procházet kategorie níže.</p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {categories.map((category) => (
-                      <Link
-                        key={category.slug}
-                        href={category.slug ? `/blog/kategorie/${category.slug}` : "/blog"}
-                        className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800 hover:bg-orange-200 transition-colors"
-                      >
-                        {category.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Only show regular content when not searching */}
-        {!isSearching && (
-          <>
-            {/* Categories Navigation with horizontal scroll animation */}
-            <div className="my-8 overflow-x-auto relative">
-              <div className="flex gap-4 whitespace-nowrap pb-2">
-                {categories.map((category, index) => (
-                  <button
-                    key={category.slug}
-                    onClick={() => setSelectedCategory(category.slug)}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 hover:scale-105 ${
-                      category.slug === selectedCategory
-                        ? "bg-orange-500 text-white"
-                        : "bg-white text-zinc-700 hover:bg-orange-100"
-                    }`}
-                    style={{
-                      transitionDelay: `${index * 50}ms`,
-                      opacity: isLoaded ? 1 : 0,
-                      transform: isLoaded ? "translateY(0)" : "translateY(20px)",
-                    }}
-                  >
-                    {category.name} <span className="ml-1 text-xs opacity-70">({category.count})</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Latest Article Section with fade-up animation - only shown on "Všechny články" */}
-            {showFeaturedPost && (
-              <SectionWrapper animation="fade-up">
-                <section className="py-8">
-                  <h2 className="mb-8 text-2xl font-bold text-zinc-900">Nejnovější článek</h2>
-                  <div className="transform transition-all duration-500 ease-in-out hover:scale-[1.01]">
-                    <FeaturedArticle post={featuredPost} />
-                  </div>
-                </section>
-              </SectionWrapper>
-            )}
-
-            {/* All Articles Section with staggered fade-up animations */}
-            <SectionWrapper animation="fade-up" delay={200}>
-              <section className="py-8">
-                <h2 className="mb-8 text-2xl font-bold text-zinc-900">
-                  {selectedCategory
-                    ? categories.find((c) => c.slug === selectedCategory)?.name || "Články"
-                    : "Všechny články"}
-                </h2>
-                {filteredPosts.length > 0 ? (
-                  <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredPosts.map((post, index) => (
-                      <div
-                        key={post.id}
-                        className="transform transition-all duration-500 ease-in-out hover:scale-[1.03]"
-                        style={{ transitionDelay: `${index * 100}ms` }}
-                      >
-                        <ArticleCard post={post} />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-                    <p className="text-zinc-600">Žádné články v této kategorii.</p>
-                    <button
-                      onClick={() => setSelectedCategory("")}
-                      className="mt-4 text-orange-500 hover:text-orange-600 font-medium"
-                    >
-                      Zobrazit všechny články
-                    </button>
-                  </div>
-                )}
-              </section>
-            </SectionWrapper>
-
-            {/* Newsletter Section with fade-left animation */}
-            <SectionWrapper animation="fade-left" delay={300}>
-              <section className="my-12 rounded-xl bg-zinc-100 p-8">
-                <div className="mx-auto max-w-2xl text-center">
-                  <h2 className="mb-4 text-2xl font-bold">Odebírejte náš newsletter</h2>
-                  <p className="mb-6 text-zinc-600">
-                    Přihlaste se k odběru našeho newsletteru a dostávejte nejnovější články a aktuální informace z
-                    oblasti správy a vymáhání pohledávek.
-                  </p>
-                  <div className="flex flex-col gap-4 sm:flex-row">
-                    <input
-                      type="email"
-                      placeholder="Váš e-mail"
-                      className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all duration-300"
-                    />
-                    <Button className="whitespace-nowrap transition-all duration-300 hover:scale-105">
-                      Přihlásit se
-                    </Button>
-                  </div>
-                </div>
-              </section>
-            </SectionWrapper>
-          </>
-        )}
       </div>
     </div>
   )

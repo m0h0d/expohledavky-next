@@ -1,35 +1,38 @@
 "use client"
 
-import type React from "react"
+import React, { useEffect, useRef, useState } from "react"
 
-import { useEffect, useRef } from "react"
-import { cn } from "@/lib/utils"
+type AnimationType = "fade-up" | "fade-down" | "fade-left" | "fade-right" | "fade" | "bounce"
 
 interface SectionWrapperProps {
   children: React.ReactNode
-  className?: string
-  animation?: "fade-up" | "fade-left" | "fade-right" | "zoom" | "bounce"
+  animation?: AnimationType
   delay?: number
+  className?: string
 }
 
-export function SectionWrapper({ children, className, animation = "fade-up", delay = 0 }: SectionWrapperProps) {
+export const SectionWrapper = ({
+  children,
+  animation = "fade-up",
+  delay = 0,
+  className = "",
+}: SectionWrapperProps) => {
+  const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Add the animation class when the section comes into view
-            const animationClass = `animate-section-${animation}`
-            entry.target.classList.add(animationClass)
-          }
-        })
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          observer.unobserve(entry.target)
+        }
       },
       {
+        root: null,
+        rootMargin: "0px",
         threshold: 0.1,
-        rootMargin: "50px",
-      },
+      }
     )
 
     if (sectionRef.current) {
@@ -41,17 +44,38 @@ export function SectionWrapper({ children, className, animation = "fade-up", del
         observer.unobserve(sectionRef.current)
       }
     }
-  }, [animation])
+  }, [])
+
+  const getAnimationClass = () => {
+    if (!isVisible) return "opacity-0"
+
+    switch (animation) {
+      case "fade-up":
+        return "animate-fade-up"
+      case "fade-down":
+        return "animate-fade-down"
+      case "fade-left":
+        return "animate-fade-left"
+      case "fade-right":
+        return "animate-fade-right"
+      case "fade":
+        return "animate-fade"
+      case "bounce":
+        return "animate-bounce"
+      default:
+        return "animate-fade-up"
+    }
+  }
 
   return (
-    <div 
-      ref={sectionRef} 
-      className={cn(
-        "opacity-0",
-        "transition-all duration-700",
-        className
-      )} 
-      style={{ transitionDelay: `${delay}ms` }}
+    <div
+      ref={sectionRef}
+      className={`transition-all duration-700 ${getAnimationClass()} ${className}`}
+      style={{ 
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? "translateY(0)" : "translateY(20px)",
+        transitionDelay: `${delay}ms`
+      }}
     >
       {children}
     </div>

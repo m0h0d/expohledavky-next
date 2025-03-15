@@ -1,325 +1,175 @@
-"use client"
+import { notFound } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { MDXRemote } from 'next-mdx-remote';
+import { ArrowLeft, Clock, Calendar, Share2, BookOpen } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { getPostBySlug, getAllPostSlugs } from '@/lib/posts';
 
-import { useState, useEffect, use } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowLeft, Clock, Share2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { SectionWrapper } from "@/components/section-wrapper"
-
-// Sample blog posts data - in a real app, this would come from a CMS or API
-const blogPosts = {
-  "best-practices-sprava-pohledavek": {
-    title:
-      "Best practices pro správu pohledávek: Jak efektivně řídit a monitorovat pohledávky v rámci českého právního prostředí",
-    date: "11. března 2025",
-    author: "Jan Novák",
-    authorPosition: "Specialista na pohledávky",
-    authorImage: "/placeholder.svg?height=120&width=120",
-    readTime: "6 minut čtení",
-    category: "Správa pohledávek",
-    image: "/placeholder.svg?height=800&width=1600",
-    excerpt:
-      "Přehledný článek o tématu Best practices pro správu pohledávek: Jak efektivně řídit a monitorovat pohledávky v rámci českého právního prostředí. Zjistěte klíčové informace pro správu a vymáhání pohledávek.",
-    content: `
-      <p>
-        Přehledný článek o tématu Best practices pro správu pohledávek: Jak efektivně řídit a monitorovat pohledávky v
-        rámci českého právního prostředí. Zjistěte klíčové informace pro správu a vymáhání pohledávek.
-      </p>
-
-      <h2 id="uvod-do-problematiky">Úvod do problematiky</h2>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat.
-      </p>
-
-      <h2 id="klicove-body">Klíčové body správy pohledávek</h2>
-      <ul>
-        <li>Pravidelné monitorování a hodnocení pohledávek</li>
-        <li>Efektivní komunikace s dlužníky</li>
-        <li>Správné nastavení interních procesů</li>
-        <li>Využití moderních technologií</li>
-      </ul>
-
-      <h2 id="zaver">Závěr</h2>
-      <p>
-        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
-        laborum.
-      </p>
-    `,
-    tableOfContents: [
-      { id: "uvod-do-problematiky", title: "Úvod do problematiky" },
-      { id: "klicove-body", title: "Klíčové body správy pohledávek" },
-      { id: "zaver", title: "Závěr" },
-    ],
-  },
-  "dopad-neplacenych-pohledavek": {
-    title: "Dopad neplacených pohledávek na cash flow: Jak neuhrazené faktury ovlivňují finanční zdraví firmy",
-    date: "11. března 2025",
-    author: "Jan Novák",
-    authorPosition: "Specialista na pohledávky",
-    authorImage: "/placeholder.svg?height=120&width=120",
-    readTime: "5 minut čtení",
-    category: "Správa pohledávek",
-    image: "/placeholder.svg?height=800&width=1600",
-    excerpt: "Analýza dopadu neplacených pohledávek na finanční zdraví firem a jejich cash flow.",
-    content: `
-      <p>
-        Analýza dopadu neplacených pohledávek na finanční zdraví firem a jejich cash flow.
-      </p>
-
-      <h2 id="uvod-do-problematiky">Úvod do problematiky</h2>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat.
-      </p>
-
-      <h2 id="klicove-body">Klíčové body správy pohledávek</h2>
-      <ul>
-        <li>Pravidelné monitorování a hodnocení pohledávek</li>
-        <li>Efektivní komunikace s dlužníky</li>
-        <li>Správné nastavení interních procesů</li>
-        <li>Využití moderních technologií</li>
-      </ul>
-
-      <h2 id="zaver">Závěr</h2>
-      <p>
-        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
-        laborum.
-      </p>
-    `,
-    tableOfContents: [
-      { id: "uvod-do-problematiky", title: "Úvod do problematiky" },
-      { id: "klicove-body", title: "Klíčové body správy pohledávek" },
-      { id: "zaver", title: "Závěr" },
-    ],
-  },
-  "efektivni-strategie-vymahani": {
-    title:
-      "Efektivní strategie vymáhání pohledávek: Přehled soudních i mimosoudních metod vymáhání, včetně role exekucí",
-    date: "11. března 2025",
-    author: "Jan Novák",
-    authorPosition: "Specialista na pohledávky",
-    authorImage: "/placeholder.svg?height=120&width=120",
-    readTime: "7 minut čtení",
-    category: "Vymáhání pohledávek",
-    image: "/placeholder.svg?height=800&width=1600",
-    excerpt: "Komplexní přehled strategií pro vymáhání pohledávek včetně soudních a mimosoudních metod.",
-    content: `
-      <p>
-        Komplexní přehled strategií pro vymáhání pohledávek včetně soudních a mimosoudních metod.
-      </p>
-
-      <h2 id="uvod-do-problematiky">Úvod do problematiky</h2>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat.
-      </p>
-
-      <h2 id="klicove-body">Klíčové body správy pohledávek</h2>
-      <ul>
-        <li>Pravidelné monitorování a hodnocení pohledávek</li>
-        <li>Efektivní komunikace s dlužníky</li>
-        <li>Správné nastavení interních procesů</li>
-        <li>Využití moderních technologií</li>
-      </ul>
-
-      <h2 id="zaver">Závěr</h2>
-      <p>
-        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
-        laborum.
-      </p>
-    `,
-    tableOfContents: [
-      { id: "uvod-do-problematiky", title: "Úvod do problematiky" },
-      { id: "klicove-body", title: "Klíčové body správy pohledávek" },
-      { id: "zaver", title: "Závěr" },
-    ],
-  },
-  "eticke-spotrebitelske-aspekty": {
-    title: "Etické a spotřebitelské aspekty: Jak zajistit férové a transparentní postupy při vymáhání pohledávek",
-    date: "11. března 2025",
-    author: "Jan Novák",
-    authorPosition: "Specialista na pohledávky",
-    authorImage: "/placeholder.svg?height=120&width=120",
-    readTime: "5 minut čtení",
-    category: "Etika vymáhání",
-    image: "/placeholder.svg?height=800&width=1600",
-    excerpt:
-      "Etické a spotřebitelské aspekty vymáhání pohledávek: Průvodce férovými a transparentními postupy pro spravedlivé řešení.",
-    content: `
-      <p>
-        Etické a spotřebitelské aspekty vymáhání pohledávek: Průvodce férovými a transparentními postupy pro spravedlivé řešení.
-      </p>
-
-      <h2 id="uvod-do-problematiky">Úvod do problematiky</h2>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat.
-      </p>
-
-      <h2 id="klicove-body">Klíčové body správy pohledávek</h2>
-      <ul>
-        <li>Pravidelné monitorování a hodnocení pohledávek</li>
-        <li>Efektivní komunikace s dlužníky</li>
-        <li>Správné nastavení interních procesů</li>
-        <li>Využití moderních technologií</li>
-      </ul>
-
-      <h2 id="zaver">Závěr</h2>
-      <p>
-        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
-        laborum.
-      </p>
-    `,
-    tableOfContents: [
-      { id: "uvod-do-problematiky", title: "Úvod do problematiky" },
-      { id: "klicove-body", title: "Klíčové body správy pohledávek" },
-      { id: "zaver", title: "Závěr" },
-    ],
-  },
+// Generování statických parametrů pro všechny články
+export async function generateStaticParams() {
+  const slugs = getAllPostSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
-export default function BlogPost({ params }: { params: { slug: string } }) {
-  const resolvedParams = use(params)
-  const slug = resolvedParams.slug
-  const post = blogPosts[slug as keyof typeof blogPosts]
-  const [isLoaded, setIsLoaded] = useState(false)
+// Metadata pro SEO
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  const post = await getPostBySlug(params.slug);
+  if (!post) return {
+    title: 'Článek nenalezen | EXPOHLEDÁVKY',
+    description: 'Požadovaný článek nebyl nalezen'
+  };
+  
+  return {
+    title: `${post.frontMatter.title} | EXPOHLEDÁVKY`,
+    description: post.frontMatter.description || 'Odborný článek na téma pohledávek',
+    openGraph: {
+      title: post.frontMatter.title,
+      description: post.frontMatter.description,
+      images: [post.frontMatter.image],
+    },
+  };
+}
 
-  useEffect(() => {
-    // Set loaded state after a small delay to trigger animations
-    const timer = setTimeout(() => {
-      setIsLoaded(true)
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [])
-
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+  const post = await getPostBySlug(params.slug);
+  
+  // Pokud článek neexistuje, zobrazíme stránku s chybou
   if (!post) {
-    return (
-      <div className="container min-h-screen py-32 text-center">
-        <h1 className="text-3xl font-bold">Článek nenalezen</h1>
-        <p className="mt-4">Požadovaný článek neexistuje nebo byl odstraněn.</p>
-        <Button className="mt-8" asChild>
-          <Link href="/blog">Zpět na blog</Link>
-        </Button>
-      </div>
-    )
+    return notFound();
+  }
+
+  // Rozdělení obsahu pro vytvoření obsahu článku
+  const headingsRegex = /<h([2-3])\s+id="([^"]+)">([^<]+)<\/h\1>/g;
+  const headings: { id: string; title: string; level: number }[] = [];
+  
+  let match;
+  const contentString = post.mdxSource?.compiledSource || '';
+  
+  while ((match = headingsRegex.exec(contentString)) !== null) {
+    headings.push({
+      level: parseInt(match[1], 10),
+      id: match[2],
+      title: match[3],
+    });
   }
 
   return (
-    <article className="min-h-screen bg-gray-50 pb-16 pt-32">
-      {/* Breadcrumbs with fade-in animation */}
-      <div
-        className={`container border-b border-gray-200 pb-4 transition-all duration-700 ${isLoaded ? "opacity-100" : "opacity-0"}`}
-      >
-        <div className="flex items-center text-sm text-zinc-500">
-          <Link href="/" className="hover:text-orange-500 transition-colors duration-300">
-            ExPohledávky
-          </Link>
-          <span className="mx-2">/</span>
-          <Link href="/blog" className="hover:text-orange-500 transition-colors duration-300">
-            Blog
-          </Link>
-          <span className="mx-2">/</span>
-          <Link
-            href={`/blog/${slug}`}
-            className="text-zinc-700 hover:text-orange-500 transition-colors duration-300"
-          >
-            {post.title}
-          </Link>
+    <article className="min-h-screen bg-gradient-to-b from-zinc-950 to-black text-white pb-16 pt-28">
+      <div className="container mx-auto px-4">
+        {/* Breadcrumbs */}
+        <div className="border-b border-zinc-800/60 pb-4">
+          <div className="flex items-center text-sm text-zinc-500">
+            <Link href="/" className="hover:text-orange-500 transition-colors duration-300">
+              ExPohledávky
+            </Link>
+            <span className="mx-2">/</span>
+            <Link href="/blog" className="hover:text-orange-500 transition-colors duration-300">
+              Blog
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-orange-400">
+              {post.frontMatter.title}
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div className="container mt-8">
-        <Button variant="ghost" className="mb-6 transition-all duration-300 hover:scale-105" asChild>
+        <Button variant="ghost" className="mt-6 mb-8 text-zinc-400 hover:text-orange-400 hover:bg-zinc-900/40" asChild>
           <Link href="/blog" className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             Zpět na blog
           </Link>
         </Button>
 
-        <div className="mx-auto max-w-4xl">
-          {/* Article Header with fade-in animation */}
-          <header
-            className={`mb-8 transition-all duration-1000 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-          >
-            <h1 className="mb-6 text-3xl font-bold text-zinc-900 md:text-4xl">{post.title}</h1>
+        <div className="mx-auto max-w-3xl">
+          {/* Article Header */}
+          <header className="mb-12">
+            {post.frontMatter.category && (
+              <Badge className="mb-6 bg-orange-500 text-white hover:bg-orange-600 px-3 py-1 text-xs">
+                {post.frontMatter.category}
+              </Badge>
+            )}
+            <h1 className="mb-6 text-3xl font-bold text-white md:text-4xl lg:text-5xl leading-tight">{post.frontMatter.title}</h1>
+            
+            {post.frontMatter.subtitle && (
+              <p className="mb-8 text-xl text-zinc-300">{post.frontMatter.subtitle}</p>
+            )}
 
-            <div className="mb-6 flex flex-wrap items-center gap-4 border-b border-gray-200 pb-6">
-              <div className="flex items-center gap-3">
-                <div className="relative h-12 w-12 overflow-hidden rounded-full">
-                  <Image src={post.authorImage || "/placeholder.svg"} alt={post.author} fill className="object-cover" />
+            <div className="mb-8 flex flex-wrap items-center gap-4 text-sm text-zinc-400 bg-gradient-to-r from-zinc-900 to-zinc-950 p-4 rounded-lg border border-zinc-800/40 shadow-sm">
+              {post.frontMatter.author && post.frontMatter.authorImage && (
+                <div className="flex items-center gap-2">
+                  <div className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-orange-500/20">
+                    <Image 
+                      src={post.frontMatter.authorImage} 
+                      alt={post.frontMatter.author} 
+                      fill 
+                      className="object-cover" 
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium text-white">{post.frontMatter.author}</div>
+                    {post.frontMatter.authorPosition && (
+                      <div className="text-xs text-zinc-500">{post.frontMatter.authorPosition}</div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <div className="font-medium">{post.author}</div>
-                  <div className="text-sm text-zinc-500">{post.authorPosition}</div>
-                </div>
-              </div>
-
-              <div className="ml-auto flex items-center gap-4">
-                <div className="flex items-center gap-1 text-sm text-zinc-500">
-                  <Clock className="h-4 w-4" />
-                  {post.readTime}
-                </div>
-                <div className="text-sm text-zinc-500">{post.date}</div>
-                <Link
-                  href={`/blog/kategorie/${post.category.toLowerCase().replace(/\s+/g, "-")}`}
-                  className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800 transition-all duration-300 hover:bg-orange-200"
-                >
-                  {post.category}
-                </Link>
+              )}
+              
+              <div className="ml-auto flex flex-wrap items-center gap-4">
+                {post.frontMatter.date && (
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4 text-orange-500" />
+                    <span>{new Date(post.frontMatter.date).toLocaleDateString('cs-CZ', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}</span>
+                  </div>
+                )}
+                
+                {post.frontMatter.readTime && (
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4 text-orange-500" />
+                    <span>{post.frontMatter.readTime}</span>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Featured Image with zoom-in animation */}
-            <div className="mb-8 overflow-hidden rounded-xl">
-              <div className="relative aspect-[21/9]">
-                <Image
-                  src={post.image || "/placeholder.svg"}
-                  alt={post.title}
-                  fill
-                  className={`object-cover transition-transform duration-[2s] ${isLoaded ? "scale-100" : "scale-110"}`}
-                  sizes="(max-width: 1024px) 100vw, 800px"
-                  priority
-                />
+            {/* Featured Image */}
+            {post.frontMatter.image && (
+              <div className="mb-10 overflow-hidden rounded-lg shadow-xl">
+                <div className="relative aspect-[16/9]">
+                  <Image
+                    src={post.frontMatter.image}
+                    alt={post.frontMatter.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 800px"
+                    priority
+                  />
+                </div>
               </div>
-            </div>
-
-            {/* Article Excerpt with fade-in animation */}
-            <div
-              className="mb-8 rounded-lg bg-zinc-100 p-6 text-lg text-zinc-700 transition-all duration-700 delay-300"
-              style={{
-                opacity: isLoaded ? 1 : 0,
-                transform: isLoaded ? "translateY(0)" : "translateY(20px)",
-              }}
-            >
-              {post.excerpt}
-            </div>
+            )}
           </header>
-
-          {/* Table of Contents with fade-in animation */}
-          <SectionWrapper animation="fade-right">
-            <div className="mb-8 rounded-lg border border-gray-200 p-6 hover:border-orange-200 transition-colors duration-300">
-              <h4 className="mb-4 font-bold">Obsah článku</h4>
+          
+          {/* Table of Contents */}
+          {headings.length > 0 && (
+            <div className="mb-10 rounded-lg bg-gradient-to-r from-zinc-900 to-zinc-950 border border-zinc-800/60 p-6 shadow-lg">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+                <BookOpen className="h-5 w-5 text-orange-500" />
+                Obsah článku
+              </h3>
               <ul className="space-y-2">
-                {post.tableOfContents.map((item, index) => (
+                {headings.map((item) => (
                   <li
                     key={item.id}
-                    className="transform transition-all duration-300"
-                    style={{ transitionDelay: `${index * 100}ms` }}
+                    className={`transform transition-all duration-300 ${item.level === 3 ? 'ml-4' : ''}`}
                   >
                     <a
                       href={`#${item.id}`}
-                      className="text-orange-600 hover:text-orange-800 hover:underline transition-colors duration-300"
+                      className="text-orange-400 hover:text-orange-300 hover:underline transition-colors duration-300"
                     >
                       {item.title}
                     </a>
@@ -327,71 +177,103 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
                 ))}
               </ul>
             </div>
-          </SectionWrapper>
+          )}
 
-          {/* Article Content with fade-up animation */}
-          <SectionWrapper animation="fade-up">
-            <div className="prose prose-zinc prose-lg mx-auto" dangerouslySetInnerHTML={{ __html: post.content }} />
-          </SectionWrapper>
+          {/* Article Content */}
+          <div className="prose prose-invert prose-lg mx-auto prose-headings:text-white prose-a:text-orange-400 hover:prose-a:text-orange-300 prose-strong:text-orange-200 prose-code:bg-zinc-800 prose-code:text-orange-300 prose-blockquote:border-orange-500 prose-blockquote:bg-zinc-900/50 prose-blockquote:py-1 prose-img:rounded-lg">
+            <MDXRemote {...post.mdxSource} />
+          </div>
 
-          {/* Share Section with fade-up animation */}
-          <SectionWrapper animation="fade-up" delay={200}>
-            <div className="mt-12 border-t border-gray-200 pt-8">
-              <h3 className="mb-4 flex items-center gap-2 text-xl font-bold">
-                <Share2 className="h-5 w-5" />
-                Sdílet článek
-              </h3>
-              <div className="flex gap-4">
-                {["Facebook", "LinkedIn", "Twitter", "Email"].map((platform, index) => (
-                  <Button
-                    key={platform}
-                    variant="outline"
-                    size="sm"
-                    className="transition-all duration-300 hover:scale-105 hover:bg-orange-50"
-                    style={{ transitionDelay: `${index * 100}ms` }}
-                  >
-                    {platform}
-                  </Button>
+          {/* Tags */}
+          {post.frontMatter.tags && post.frontMatter.tags.length > 0 && (
+            <div className="mt-10 pt-6 border-t border-zinc-800/40">
+              <h3 className="mb-4 text-lg font-semibold text-white">Související témata</h3>
+              <div className="flex flex-wrap gap-2">
+                {post.frontMatter.tags.map((tag: string) => (
+                  <Link key={tag} href={`/blog?tag=${encodeURIComponent(tag)}`}>
+                    <Badge variant="outline" className="border-zinc-700 text-zinc-300 hover:border-orange-500 hover:text-orange-400 hover:bg-orange-500/10 transition-all duration-300">
+                      {tag}
+                    </Badge>
+                  </Link>
                 ))}
               </div>
             </div>
-          </SectionWrapper>
+          )}
 
-          {/* Author Bio with fade-left animation */}
-          <SectionWrapper animation="fade-left" delay={300}>
-            <div className="mt-12 rounded-xl bg-zinc-50 p-6 hover:bg-zinc-100 transition-colors duration-500">
-              <h3 className="mb-4 text-xl font-bold">O autorovi</h3>
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full transition-transform duration-500 hover:scale-105">
-                  <Image src={post.authorImage || "/placeholder.svg"} alt={post.author} fill className="object-cover" />
-                </div>
+          {/* Share Section */}
+          <div className="mt-10 rounded-lg bg-gradient-to-r from-zinc-900 to-zinc-950 border border-zinc-800/60 p-6 shadow-lg">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+              <Share2 className="h-5 w-5 text-orange-500" />
+              Sdílet článek
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {["Facebook", "LinkedIn", "Twitter", "Email"].map((platform) => (
+                <Button
+                  key={platform}
+                  variant="outline"
+                  size="sm"
+                  className="border-zinc-700 text-zinc-300 hover:border-orange-500 hover:text-orange-400 hover:bg-orange-500/10 transition-all duration-300"
+                >
+                  {platform}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Author Information */}
+          {post.frontMatter.author && (
+            <div className="mt-10 rounded-lg bg-gradient-to-r from-zinc-900 to-zinc-950 border border-zinc-800/60 p-6 shadow-lg">
+              <h3 className="mb-4 text-xl font-bold text-white">O autorovi</h3>
+              <div className="flex items-start gap-4">
+                {post.frontMatter.authorImage && (
+                  <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-orange-500/30">
+                    <Image 
+                      src={post.frontMatter.authorImage} 
+                      alt={post.frontMatter.author} 
+                      fill 
+                      className="object-cover" 
+                    />
+                  </div>
+                )}
                 <div>
-                  <h4 className="text-lg font-bold">{post.author}</h4>
-                  <p className="mb-2 text-sm text-zinc-500">{post.authorPosition}</p>
-                  <p className="text-zinc-700">
-                    Specialista na správu a vymáhání pohledávek s více než 10 lety zkušeností v oboru. Pomáhá firmám
-                    efektivně řídit jejich pohledávky a minimalizovat rizika spojená s neplacením.
-                  </p>
+                  <h4 className="font-medium text-white">{post.frontMatter.author}</h4>
+                  {post.frontMatter.authorPosition && (
+                    <p className="text-sm text-zinc-400">{post.frontMatter.authorPosition}</p>
+                  )}
+                  {post.frontMatter.authorBio && (
+                    <p className="mt-2 text-zinc-300 text-sm">{post.frontMatter.authorBio}</p>
+                  )}
                 </div>
               </div>
             </div>
-          </SectionWrapper>
+          )}
 
-          {/* CTA Section with bounce animation */}
-          <SectionWrapper animation="bounce" delay={400}>
-            <div className="mt-12 rounded-xl bg-zinc-100 p-6 hover:shadow-md transition-all duration-500">
-              <h3 className="mb-4 text-xl font-bold">Potřebujete pomoc s vymáháním pohledávek?</h3>
-              <p className="mb-4">
-                Naši specialisté jsou připraveni vám pomoci s jakýmkoliv problémem týkajícím se pohledávek.
-              </p>
-              <Button asChild className="transition-all duration-300 hover:scale-105">
-                <Link href="/poptavka">Kontaktujte nás</Link>
-              </Button>
+          {/* Related Articles - placeholder */}
+          <div className="mt-10">
+            <h3 className="mb-6 text-xl font-bold text-white">Související články</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Link href="/blog" className="group block rounded-lg bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-800 p-4 hover:border-orange-500/50 transition-all duration-300 shadow-lg hover:shadow-orange-500/5">
+                <h4 className="mb-2 font-medium text-white group-hover:text-orange-400 transition-colors">Vymáhání pohledávek v roce 2025</h4>
+                <p className="text-sm text-zinc-400">Zjistěte, jaké jsou nejnovější trendy a postupy v oblasti vymáhání pohledávek.</p>
+              </Link>
+              <Link href="/blog" className="group block rounded-lg bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-800 p-4 hover:border-orange-500/50 transition-all duration-300 shadow-lg hover:shadow-orange-500/5">
+                <h4 className="mb-2 font-medium text-white group-hover:text-orange-400 transition-colors">Prevence vzniku pohledávek</h4>
+                <p className="text-sm text-zinc-400">Jak nastavit obchodní podmínky a procesy, abyste minimalizovali riziko vzniku nedobytných pohledávek.</p>
+              </Link>
             </div>
-          </SectionWrapper>
+          </div>
+
+          {/* Contact CTA */}
+          <div className="mt-16 rounded-lg bg-gradient-to-r from-orange-950 to-zinc-900 border border-orange-900/40 p-8 text-center shadow-lg">
+            <h3 className="mb-3 text-2xl font-bold text-white">Potřebujete pomoc s vymáháním pohledávek?</h3>
+            <p className="mb-6 text-zinc-300">Naši specialisté jsou připraveni vám pomoci s jakýmkoliv problémem týkajícím se pohledávek.</p>
+            <Button asChild className="bg-orange-500 hover:bg-orange-600 shadow-md">
+              <Link href="/kontakt">Kontaktujte nás</Link>
+            </Button>
+          </div>
         </div>
       </div>
     </article>
-  )
+  );
 }
 
