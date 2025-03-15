@@ -173,17 +173,17 @@ export default function BlogPage() {
     <div className="min-h-screen bg-white pb-16">
       {/* Tmavý header */}
       <div className="bg-gradient-to-b from-black to-zinc-900 text-white pb-20 pt-28">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 flex flex-col justify-center min-h-[300px]">
           {/* Header content */}
-          <div className="text-center mb-12">
-            <h1 className="mb-6 text-4xl font-bold md:text-5xl">
+          <div className="text-center">
+            <h1 className="mb-8 text-4xl font-bold md:text-5xl">
               <span className="text-white">EX</span>
               <span className="text-orange-500">POHLEDÁVKY</span>
             </h1>
-            <h2 className="mb-4 text-xl font-medium md:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-orange-300">
+            <h2 className="mb-6 text-xl font-medium md:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-orange-300">
               Odborný portál o správě a vymáhání pohledávek
             </h2>
-            <p className="mb-8 mx-auto max-w-2xl text-zinc-300">
+            <p className="mb-10 mx-auto max-w-2xl text-zinc-300">
               Vítejte na našem blogu věnovaném správě, odkupu a vymáhání pohledávek. 
               Najdete zde odborné články s praktickými radami pro firmy a podnikatele v českém právním prostředí.
             </p>
@@ -222,6 +222,9 @@ export default function BlogPage() {
 
       {/* Světlý obsah stránky */}
       <div className="container mx-auto px-4 -mt-6 relative z-20">
+        {/* Procházet podle kategorií - nadpis */}
+        <h3 className="text-center text-2xl font-bold text-orange-700 mb-6">Procházet podle kategorií</h3>
+        
         {/* Kategorie (horizontální výběr) */}
         <div className="flex flex-wrap justify-center gap-2 mb-12">
           {categories.map((category) => (
@@ -319,47 +322,6 @@ export default function BlogPage() {
             ))}
           </div>
         )}
-
-        {/* Kategorie (spodní část) */}
-        {isLoaded && filteredPosts.length > 0 && (
-          <div className="mt-16 rounded-lg bg-orange-50 border border-orange-200 p-8 shadow-md">
-            <h3 className="mb-6 text-xl font-bold text-orange-700">Procházet podle kategorií</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {categories.map((category) => (
-                <Button 
-                  key={category}
-                  variant="outline" 
-                  className={`justify-start transition-all duration-300 ${
-                    selectedCategory === category 
-                      ? "border-orange-500 bg-orange-50 text-orange-700" 
-                      : "border-orange-200 text-zinc-700 hover:border-orange-400 hover:bg-orange-50/50"
-                  }`}
-                  onClick={() => handleCategorySelect(category)}
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Newsletter */}
-        <div className="mt-16 rounded-lg bg-gradient-to-r from-orange-500 to-orange-400 p-8 text-center shadow-lg">
-          <h3 className="mb-3 text-2xl font-bold text-white">Zůstaňte informováni</h3>
-          <p className="mb-6 text-white/90 max-w-xl mx-auto">
-            Přihlaste se k odběru našeho newsletteru a dostávejte nejnovější informace ze světa pohledávek.
-          </p>
-          <div className="flex max-w-md mx-auto flex-col sm:flex-row gap-3">
-            <Input
-              type="email"
-              placeholder="Váš e-mail"
-              className="bg-white/80 border-0 text-zinc-800 focus:ring-2 focus:ring-white"
-            />
-            <Button className="bg-black hover:bg-zinc-800 text-white">
-              Odebírat
-            </Button>
-          </div>
-        </div>
       </div>
     </div>
   )
