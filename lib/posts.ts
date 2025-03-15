@@ -44,9 +44,17 @@ export async function getPostBySlug(slug: string): Promise<PostData | null> {
       },
       scope: data,
     });
+    
+    // Zajistíme, že frontMatter obsahuje povinné vlastnosti
+    const frontMatter = {
+      title: data.title || 'Bez názvu',
+      date: data.date || new Date().toISOString(),
+      ...data
+    };
+    
     return {
       slug,
-      frontMatter: data,
+      frontMatter,
       mdxSource,
     };
   } catch (error) {
@@ -82,9 +90,17 @@ export async function getAllPosts(): Promise<PostData[]> {
       const filePath = path.join(postsDirectory, `${slug}.mdx`);
       const source = fs.readFileSync(filePath, 'utf8');
       const { data } = matter(source);
+      
+      // Zajistíme, že frontMatter obsahuje povinné vlastnosti
+      const frontMatter = {
+        title: data.title || 'Bez názvu',
+        date: data.date || new Date().toISOString(),
+        ...data
+      };
+      
       return {
         slug,
-        frontMatter: data,
+        frontMatter,
       };
     });
 
